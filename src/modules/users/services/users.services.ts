@@ -32,7 +32,10 @@ export class UserServices {
     const user = await this.userRepo.loginUser(input.email);
     
     if (!user) {
-      throw new Error('User not found');
+      return {
+        message: "User Not Found",
+        Success: false,
+      }
     }
     
     if (user.password_hash !== input.hash_password) {

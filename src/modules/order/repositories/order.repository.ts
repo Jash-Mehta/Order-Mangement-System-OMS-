@@ -15,7 +15,7 @@ export class OrderRepository {
       .executeTakeFirstOrThrow();
   }
 
-  async getById(id: number): Promise<Order | null> {
+  async getById(id: string): Promise<Order | null> {
     const row = await orderDB
       .selectFrom('orders')
       .selectAll()
@@ -34,7 +34,7 @@ export class OrderRepository {
     };
   }
 
-  async getAll(customer_id: number): Promise<Order[]> {
+  async getAll(customer_id: string): Promise<Order[]> {
     const rows = await orderDB
       .selectFrom('orders')
       .selectAll()

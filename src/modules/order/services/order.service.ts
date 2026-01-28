@@ -7,30 +7,36 @@ export class OrderService {
   constructor(private readonly orderRepo: OrderRepository = new OrderRepository()) {}
 
   async createOrder(input: {
-    customerId: number;
+    customer_id?: string;
+    customerId?: string;
     status: 'PENDING' | 'PAID';
-    totalAmount: number;
+    total_amount?: number;
+    totalAmount?: number;
   }) {
-    if(!input.customerId){
-      throw new Error("User Id Should not be Empty");
+    
+    const customerId = input.customerId || input.customer_id;
+    const totalAmount = input.totalAmount || input.total_amount;
+    
+    if (!customerId) {
+      throw new Error("Customer ID is required");
     }
+    
+    if (totalAmount === undefined) {
+      throw new Error("Total amount is required");
+    }
+    
     return this.orderRepo.create({
-      customer_id: input.customerId,
+      customer_id: customerId,
       status: input.status,
-      total_amount: input.totalAmount,
+      total_amount: totalAmount,
     });
   }
 
   async getOrderById(id: string): Promise<Order | null> {
-    const orderId = Number(id);
-    if (Number.isNaN(orderId)) {
-      throw new Error('Invalid order id');
-    }
-
-    return await this.orderRepo.getById(orderId);
+    return await this.orderRepo.getById(id);
   }
 
-  async getAllOrders(customer_id: number): Promise<Order[]> {
+  async getAllOrders(customer_id: string): Promise<Order[]> {
     return await this.orderRepo.getAll(customer_id);
   }
 

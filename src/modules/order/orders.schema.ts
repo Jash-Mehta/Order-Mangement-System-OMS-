@@ -1,8 +1,8 @@
 import { Generated } from 'kysely';
 
 export interface OrdersTable {
-  id: Generated<number>;
-  customer_id: number;
+  id: Generated<string>;
+  customer_id: string;
   status: 'PENDING' | 'PAID' | 'CANCELLED';
   total_amount: number;
   created_at: Generated<Date>;

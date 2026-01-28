@@ -14,6 +14,9 @@ export class UserControllers{
     loginUser = async (req: Request, res: Response) : Promise<void> => {
         const payLoad = req.body;
         const loginUser = await this.userService.loginUser(payLoad);
+        if(loginUser.Success==false){
+            res.status(401).json(loginUser);
+        }
         res.status(201).json(loginUser);
     }
 }

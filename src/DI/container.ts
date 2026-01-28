@@ -9,6 +9,7 @@ import { UserServices } from "../modules/users/services/users.services";
 const orderRepo = new OrderRepository();
 const orderService = new OrderService(orderRepo);
 const orderController = new OrderController(orderService);
+// User Repo
 const userRepo = new UsersRepositories();
 const userServices = new UserServices(userRepo);
 const userControllers = new UserControllers(userServices);

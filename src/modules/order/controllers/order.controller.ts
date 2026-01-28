@@ -30,7 +30,7 @@ export class OrderController {
       res.status(400).json({ message: 'customerId query parameter is required' });
       return;
     }
-    const orders = await this.orderService.getAllOrders(Number(customerId));
+    const orders = await this.orderService.getAllOrders(String(customerId));
 
     res.status(200).json(orders);
   }
