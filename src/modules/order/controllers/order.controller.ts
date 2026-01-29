@@ -24,6 +24,18 @@ export class OrderController {
     res.status(200).json(order);
   };
 
+  createWithItems = async (req: Request, res: Response) => {
+    const payload = req.body;
+
+    const result = await this.orderService.createOrderWithItems(payload);
+    res.status(201).json(result);
+  };
+
+  getAllOrdersWithItems = async (req: Request, res: Response) => {
+    const orders = await this.orderService.getAllOrdersCreated();
+    res.status(200).json(orders);
+  };
+
   getAll = async(req: Request, res: Response) => {
     const customerId = req.query.customerId;
     if (!customerId || Array.isArray(customerId)) {

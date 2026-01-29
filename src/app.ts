@@ -1,6 +1,6 @@
 import express from 'express';
 
-import { orderRouter,userRouter } from './modules/index';
+import { orderRouter,userRouter, inventoryRouter } from './modules/index';
 import dotenv from 'dotenv';
 
 export function createApp() {
@@ -12,6 +12,7 @@ export function createApp() {
 
   app.use('/orders', orderRouter);
   app.use('/users',userRouter);
+  app.use('/inventory',inventoryRouter);
   
 
   return app;

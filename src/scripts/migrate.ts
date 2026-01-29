@@ -1,6 +1,7 @@
 import { readdir, readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { pgPool } from '../database';
+import { TABLES } from '../database/table_name';
 
 async function ensureMigrationsTable() {
   await pgPool.query(
@@ -25,6 +26,24 @@ async function applyMigration(id: string, sql: string) {
   }
 }
 
+async function printTableSchema(tableName: string) {
+  const { rows } = await pgPool.query(`
+    SELECT column_name, data_type, is_nullable
+    FROM information_schema.columns
+    WHERE table_name = $1
+    ORDER BY ordinal_position
+  `, [tableName]);
+
+  console.log(`\n📐 Schema for table: ${tableName}`);
+  console.table(rows);
+}
+
+async function printTableData(tableName: string) {
+  const { rows } = await pgPool.query(`SELECT * FROM ${tableName} LIMIT 10`);
+  console.log(`\n📊 Data from table: ${tableName}`);
+  console.table(rows);
+}
+
 async function main() {
   const migrationsDir = path.resolve(__dirname, '../database/migrations');
 
@@ -35,11 +54,25 @@ async function main() {
 
   for (const file of files) {
     const id = file;
-    if (applied.has(id)) continue;
+    if (applied.has(id)) {
+      console.log(`⏭️  Skipping migration: ${id}`);
+      continue;
+    }
+
+    console.log(`🚀 Applying migration: ${id}`);
+
 
     const sql = await readFile(path.join(migrationsDir, file), 'utf8');
     await applyMigration(id, sql);
+    console.log(`✅ Migration applied: ${id}`);
   }
+
+  // await printTableSchema('orders_items');
+  // await printTableData('orders_items');
+
+  // await printTableData('orders_items');
+  // await printTableData(TABLES.ORDERS);
+  // await printTableData(TABLES.INVENTORY);
 
   await pgPool.end();
 }

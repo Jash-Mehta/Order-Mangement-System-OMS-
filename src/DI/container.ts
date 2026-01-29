@@ -1,3 +1,6 @@
+import { InventoryControllers } from "../modules/inventory/controllers/inventory.controllers";
+import { InventoryRepositories } from "../modules/inventory/repositories/inventory.repositories";
+import { InventoryServices } from "../modules/inventory/services/inventory.services";
 import { OrderController } from "../modules/order/controllers/order.controller";
 import { OrderRepository } from "../modules/order/repositories/order.repository";
 import { OrderService } from "../modules/order/services/order.service";
@@ -14,8 +17,14 @@ const userRepo = new UsersRepositories();
 const userServices = new UserServices(userRepo);
 const userControllers = new UserControllers(userServices);
 
+// Inventory Repo
+const inventoryRepo = new InventoryRepositories();
+const inventoryServices = new InventoryServices(inventoryRepo);
+const inventoryControllers = new InventoryControllers(inventoryServices);
+
 
 export const container = {
   orderController,
   userControllers,
+  inventoryControllers,
 };
