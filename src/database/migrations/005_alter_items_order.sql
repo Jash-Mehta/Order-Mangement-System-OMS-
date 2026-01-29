@@ -1,0 +1,2 @@
+ALTER TABLE orders_items
+ADD COLUMN amount TEXT NOT NULL;
