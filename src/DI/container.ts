@@ -27,4 +27,6 @@ export const container = {
   orderController,
   userControllers,
   inventoryControllers,
+  inventoryRepo,
+  inventoryServices,
 };

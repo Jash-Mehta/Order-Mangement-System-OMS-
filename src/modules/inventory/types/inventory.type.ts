@@ -24,3 +24,13 @@ export interface InventoryTable {
   created_at: Date;
   updated_at: Date;
 }
+
+export interface InventoryReservationTypeTable{
+  id: string;
+  order_id: string;
+  user_id: string;
+  product_id: string;
+  quantity: number;
+  expires_at: Date;
+  created_at: Date;
+}
