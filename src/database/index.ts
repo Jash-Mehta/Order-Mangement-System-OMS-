@@ -4,7 +4,7 @@ import { Kysely, PostgresDialect } from 'kysely';
 import { ItemOrderDatabase, OrderDatabase } from '../modules/order/orders.schema';
 import { UserDatabase } from '../modules/users/users.schema';
 import { InventoryDatabase } from '../modules/inventory/inventory.schema';
-import { InventoryReservationTable } from '../modules/inventory/inventory.reservation.schema';
+import { InventoryReservationDatabase } from '../modules/inventory/inventory.reservation.schema';
 
 export const pgPool = new Pool(getDatabaseConfig());
 
@@ -32,7 +32,7 @@ export const inventoryDB = new Kysely<InventoryDatabase>({
   }),
 });
 
-export const reservationInventoryDB = new Kysely<InventoryReservationTable>({
+export const reservationInventoryDB = new Kysely<InventoryReservationDatabase>({
   dialect: new PostgresDialect({
     pool: pgPool,
   }),
