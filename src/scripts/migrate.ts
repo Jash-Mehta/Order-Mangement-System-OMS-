@@ -66,13 +66,8 @@ async function main() {
     await applyMigration(id, sql);
     console.log(`✅ Migration applied: ${id}`);
   }
-
-  // await printTableSchema('orders_items');
-  // await printTableData('orders_items');
-
-  // await printTableData('orders_items');
   // await printTableData(TABLES.ORDERS);
-  // await printTableData(TABLES.INVENTORY);
+  // await printTableData(TABLES.ORDERS_ITEMS);
 
   await pgPool.end();
 }
