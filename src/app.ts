@@ -1,6 +1,6 @@
 import express from 'express';
 
-import { orderRouter,userRouter, inventoryRouter } from './modules/index';
+import { orderRouter,userRouter, inventoryRouter, paymentsRouter } from './modules/index';
 import dotenv from 'dotenv';
 import { InventoryCronService } from './cron/inventory-cron.service';
 
@@ -14,6 +14,7 @@ export function createApp() {
   app.use('/orders', orderRouter);
   app.use('/users',userRouter);
   app.use('/inventory',inventoryRouter);
+  app.use('/payments',paymentsRouter);
   
   // Start inventory reservation cleanup cron job
   const inventoryCron = InventoryCronService.getInstance();

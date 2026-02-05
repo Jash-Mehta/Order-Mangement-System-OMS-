@@ -23,6 +23,9 @@ export class InventoryServices {
         return await this.inventoryRepo.findProductById(id);
     }
 
+    async getAllInventory(): Promise<Inventory[]>{
+        return await this.inventoryRepo.getAllInventoryProduct();
+    }
     async createInventoryReservation(input: InventoryReservationTypeTable): Promise<InventoryReservation> {
         // Check if product exists and has enough quantity
         const inventory = await this.inventoryRepo.findProductById(input.product_id);

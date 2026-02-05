@@ -38,6 +38,10 @@ export class InventoryRepositories {
         return result || null;
     }
 
+    async getAllInventoryProduct(): Promise<Inventory[]>{
+        return await inventoryDB.selectFrom(TABLES.INVENTORY).selectAll().execute();
+    }
+
     // Inventory Reservation
 
     async createInventoryReservation(inventory_reservations: NewInventoryReservation): Promise<InventoryReservation> {

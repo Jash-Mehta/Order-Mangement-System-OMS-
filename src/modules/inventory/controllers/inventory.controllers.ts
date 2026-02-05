@@ -34,9 +34,13 @@ export class InventoryControllers{
         res.status(200).json(data);
     }
 
-    getAllReservation = async( res: Response) => {
+    getAllReservation = async (req: Request, res: Response) => {
         const data = await this.inventoryServices.getAllReservation();
         res.status(200).json(data);
     }
 
+    getAllInventoryProduct = async (req: Request, res: Response) => {
+        const data = await this.inventoryServices.getAllInventory();
+        res.status(200).json(data);
+    }
 }
