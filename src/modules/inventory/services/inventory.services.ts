@@ -32,7 +32,8 @@ export class InventoryServices {
 
         await this.inventoryRepo.removeQtyFromInventory(input.product_id, input.quantity);
         const allProductId = await this.inventoryRepo.findProductIdByOrderId(input.order_id);
-
+          await this.inventoryRepo.updateOrderStatusByOrderId(input.order_id,  'RESERVED_INVENTORY');
+       
         if (!inventory) {
             throw new Error(`Product with ID ${input.product_id} not found`);
         }

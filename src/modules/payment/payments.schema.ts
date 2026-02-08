@@ -4,7 +4,7 @@ export interface PaymentsTable {
   id: Generated<string>;
 
   order_id: string;
-  customer_id: string;
+  user_id: string;
 
   // Razorpay identifiers
   razorpay_order_id: string;

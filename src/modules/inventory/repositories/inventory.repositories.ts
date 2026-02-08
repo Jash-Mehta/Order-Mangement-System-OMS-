@@ -1,6 +1,6 @@
 import { Insertable, Selectable, sql } from "kysely";
 import { InventoryTable } from "../inventory.schema";
-import { inventoryDB, pgPool, reservationInventoryDB, itemOrderDB } from '../../../database';
+import { inventoryDB, pgPool, reservationInventoryDB, itemOrderDB, orderDB } from '../../../database';
 import { TABLES } from "../../../database/table_name";
 import { InventoryReservationTable } from "../inventory.reservation.schema";
 
@@ -129,6 +129,40 @@ export class InventoryRepositories {
             .executeTakeFirst();
 
         return result ? { quantity: result.quantity } : null;
+    }
+    // Update OrderItem status to RESERVED_INVENTORY
+    async updateOrderItemStatus(order_id: string, product_id: string, status: string): Promise<void> {
+        await itemOrderDB
+            .updateTable(TABLES.ORDERS_ITEMS)
+            .set({
+                 status: status as any,
+                 reviewed_at: new Date()
+            })
+            .where('order_id', '=', order_id)
+            .where('product_id', '=', product_id)
+            .execute();
+    }
+
+    async updateOrderItemStatusByOrderId(order_id: string, status: string): Promise<void> {
+        await itemOrderDB
+            .updateTable(TABLES.ORDERS_ITEMS)
+            .set({
+                 status: status as any,
+                 reviewed_at: new Date()
+            })
+            .where('order_id', '=', order_id)
+            .execute();
+    }
+    // Update Order Status to RESERVED_INVENTORY
+    async updateOrderStatusByOrderId(order_id: string, status: string): Promise<void> {
+        await orderDB
+            .updateTable(TABLES.ORDERS)
+            .set({
+                 status: status as any,
+                 updated_at: new Date()
+            })
+            .where('id', '=', order_id)
+            .execute();
     }
 
 }

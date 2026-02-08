@@ -9,7 +9,7 @@ export function createApp() {
 
   const app = express();
 
-  app.use(express.json());
+  app.use(express.json()); 
 
   app.use('/orders', orderRouter);
   app.use('/users',userRouter);

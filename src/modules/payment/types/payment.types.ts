@@ -1,7 +1,7 @@
 export interface PaymentModel{
     id: string;
     order_id: string;
-    customer_id: string;
+    user_id: string;
     // Razorpay identifiers
     razorpay_order_id?: string;
     razorpay_payment_id?: string;
