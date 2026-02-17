@@ -2,6 +2,7 @@ import { Insertable, Selectable } from 'kysely';
 import { orderDB, itemOrderDB, inventoryDB, pgPool } from '../../../database';
 import { ItemOrderDatabase, ItemOrderTable, OrdersTable } from '../orders.schema';
 import { TABLES } from '../../../database/table_name';
+import { QueryLoader } from '../../../utils/query-loader.util';
 
 export type Order = Selectable<OrdersTable>;
 export type NewOrder = Insertable<OrdersTable>;

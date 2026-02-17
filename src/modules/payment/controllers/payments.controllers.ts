@@ -1,12 +1,17 @@
 import { Request, Response } from "express";
 import { PaymentsServices } from "../services/payments.services";
 import { RazorpayWebhookEvent } from "../types/webhook.types";
+import { ResponseUtil } from "../../../utils/response.util";
 
 export class PaymentsControllers {
     constructor(private paymentServices: PaymentsServices) { }
     createPayment = async (req: Request, res: Response) => {
-        const data = await this.paymentServices.createPayment(req.body);
-        return res.status(200).json(data);
+        try {
+            const data = await this.paymentServices.createPayment(req.body);
+            ResponseUtil.success(res, data, 'Payment created successfully');
+        } catch (error) {
+            ResponseUtil.internalError(res, 'Failed to create payment', error instanceof Error ? error.message : 'Unknown error');
+        }
     }
 
     handleWebhook = async (req: Request, res: Response) => {
@@ -15,7 +20,8 @@ export class PaymentsControllers {
             const body = req.body;
 
             if (!signature) {
-                return res.status(400).json({ error: 'Missing webhook signature' });
+                ResponseUtil.badRequest(res, 'Missing webhook signature', 'x-razorpay-signature header is required');
+                return;
             }
 
             const isValid = this.paymentServices.verifyWebhookSignature(
@@ -24,15 +30,15 @@ export class PaymentsControllers {
             );
 
             if (!isValid) {
-                return res.status(401).json({ error: 'Invalid webhook signature' });
+                ResponseUtil.unauthorized(res, 'Invalid webhook signature', 'Webhook signature verification failed');
+                return;
             }
 
             await this.paymentServices.processWebhook(body as RazorpayWebhookEvent);
-
-            return res.status(200).json({ received: true });
+            ResponseUtil.success(res, { received: true }, 'Webhook processed successfully');
         } catch (error) {
             console.error('Webhook processing error:', error);
-            return res.status(500).json({ error: 'Internal server error' });
+            ResponseUtil.internalError(res, 'Webhook processing failed', error instanceof Error ? error.message : 'Unknown error');
         }
     }
 

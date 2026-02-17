@@ -10,7 +10,7 @@ export class PaymentsRepsitories{
     async createPayment(payments:NewPayment): Promise<Payment> {
         return await paymentDB.insertInto(TABLES.PAYMENTS).values(payments).returningAll().executeTakeFirstOrThrow();
     }
-    async getRazorpayByOrderId(order_id:string): Promise<Payment| null>{
+    async getRazorpayByOrderId(order_id:string): Promise<Payment| null> { 
         const data = await paymentDB.selectFrom(TABLES.PAYMENTS).selectAll().where('order_id','=',order_id).executeTakeFirst();
         if (!data) return null;
         return data;
