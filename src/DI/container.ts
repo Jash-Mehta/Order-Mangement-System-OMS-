@@ -9,27 +9,27 @@ import { PaymentsRepsitories } from "../modules/payment/repositories/payments.re
 import { PaymentsServices } from "../modules/payment/services/payments.services";
 import { UserControllers } from "../modules/users/controllers/users.controllers";
 import { UsersRepositories } from "../modules/users/repositories/users.repositories";
-import { UserServices } from "../modules/users/services/users.services";
+import { AuthService } from "../modules/users/services/auth.services";
 
 // src/container.ts
 const orderRepo = new OrderRepository();
 const orderService = new OrderService(orderRepo);
 const orderController = new OrderController(orderService);
-// User Repo
+
+// User Repo and Auth Service
 const userRepo = new UsersRepositories();
-const userServices = new UserServices(userRepo);
-const userControllers = new UserControllers(userServices);
+const authService = new AuthService(userRepo);
+const userControllers = new UserControllers(authService);
 
 // Inventory Repo
 const inventoryRepo = new InventoryRepositories();
 const inventoryServices = new InventoryServices(inventoryRepo);
 const inventoryControllers = new InventoryControllers(inventoryServices);
 
-// Payemnt repo
+// Payment repo
 const paymentRepo = new PaymentsRepsitories();
-const payemntServices = new PaymentsServices(paymentRepo);
+const payemntServices = new PaymentsServices(paymentRepo, inventoryServices);
 const paymentsControllers = new PaymentsControllers(payemntServices);
-
 
 export const container = {
   orderController,
@@ -38,4 +38,6 @@ export const container = {
   inventoryRepo,
   inventoryServices,
   paymentsControllers,
+  paymentRepo,
+  payemntServices,
 };

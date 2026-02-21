@@ -15,10 +15,16 @@ export class InventoryCronService {
     }
 
     startCleanupCron(): void {
-        // Run every minute to check for expired reservations
-        this.cleanupTask = cron.schedule('* * * * *', async () => {
+        // Run every 5 minutes instead of every minute
+        this.cleanupTask = cron.schedule('*/5 * * * *', async () => {
             try {
                 console.log('🔄 Running inventory reservation cleanup check...');
+                
+                // Check if services are available before using them
+                if (!container.inventoryServices || !container.inventoryRepo) {
+                    console.log('⚠️  Inventory services not available, skipping cleanup');
+                    return;
+                }
                 
                 const allReservations = await container.inventoryServices.getAllReservation();
                 const currentTime = new Date();
@@ -33,7 +39,6 @@ export class InventoryCronService {
                     }
                 }
                 
-                
                 if (expiredProductIds.size > 0) {
                     console.log(`🗑️  Releasing reservations for ${expiredProductIds.size} products`);
                     
@@ -46,7 +51,6 @@ export class InventoryCronService {
                         }
                     }
                 } else {
-                    console.log(`🗑️  Releasing reservations for ${expiredProductIds.size} products`);
                     console.log('✅ No expired inventory reservations found');
                 }
                 
@@ -54,11 +58,10 @@ export class InventoryCronService {
                 console.error('❌ Error during inventory reservation cleanup:', error);
             }
         }, {
-            
             timezone: 'UTC'
         });
 
-        console.log('⏰ Inventory reservation cleanup cron job started (runs every minute)');
+        console.log('⏰ Inventory reservation cleanup cron job started (runs every 5 minutes)');
     }
 
     stopCleanupCron(): void {

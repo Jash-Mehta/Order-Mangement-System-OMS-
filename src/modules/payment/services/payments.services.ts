@@ -4,12 +4,26 @@ import { PaymentModel } from "../types/payment.types";
 import { RazorpayWebhookEvent, WebhookEvents } from "../types/webhook.types";
 import crypto from 'crypto';
 import { VerifyPaymentDTO } from "../types/verify.paymentdto";
+import { orderDB } from "../../../database";
+import { ResponseUtil } from "../../../utils/response.util";
+import { InventoryServices } from "../../inventory/services/inventory.services";
 
 export class PaymentsServices {
-    constructor(private readonly paymentsRepositories: PaymentsRepsitories) { }
+    constructor(private readonly paymentsRepositories: PaymentsRepsitories, 
+        private  reservationServices: InventoryServices,
+    ) { }
 
     async createPayment(input: PaymentModel) {
+        const {order_id, user_id} = input;
         await this.paymentsRepositories.updateOrderStatusByOrderId(input.order_id, "IN_PROGRESS");
+        await this.reservationServices.createReservationsForOrder({order_id, user_id});
+       const orderId = await this.paymentsRepositories.getOrderId(input.order_id);
+        if(input.order_id == orderId ){
+            console.log("PaymentId is already created please wait for 10 min to start again");
+            return {
+                message: 'PaymentId is already created please wait for 10 min to start again',
+            }
+        }
         return await this.paymentsRepositories.createPayment({
             order_id: input.order_id,
             user_id: input.user_id,
@@ -19,9 +33,8 @@ export class PaymentsServices {
             status: input.status
         });
     }
+
     static async verifyPayment(data: VerifyPaymentDTO) {
-
-
         const isValid = verifyRazorpaySignature(
             data.razorpayOrderId,
             data.razorpayPaymentId,
@@ -32,9 +45,23 @@ export class PaymentsServices {
             throw new Error('Invalid Razorpay signature');
         }
 
-
-
         return { success: true };
+    }
+
+    async getPaymentByOrderId(order_id: string) {
+        return await this.paymentsRepositories.getRazorpayByOrderId(order_id);
+    }
+
+    async getPaymentByRazorpayId(razorpay_payment_id: string) {
+        return await this.paymentsRepositories.getPaymentByRazorpayId(razorpay_payment_id);
+    }
+
+    async getUserPayments(user_id: string) {
+        return await this.paymentsRepositories.getUserPayments(user_id);
+    }
+
+    async getPaymentRefunds(payment_id: string) {
+        return await this.paymentsRepositories.getPaymentRefunds(payment_id);
     }
 
     async getRazorpayByOrderId(order_id: string) {
