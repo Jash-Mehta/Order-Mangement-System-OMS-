@@ -4,4 +4,6 @@ export const TABLES = {
   ORDERS_ITEMS: 'orders_items',
   INVENTORY: 'inventory',
   RESERVATION_INVENTORY: 'inventory_reservations',
+  PAYMENTS: 'payments',
+  REFUNDS: 'refunds',
 } as const;

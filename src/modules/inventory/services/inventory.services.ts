@@ -23,13 +23,17 @@ export class InventoryServices {
         return await this.inventoryRepo.findProductById(id);
     }
 
+    async getAllInventory(): Promise<Inventory[]>{
+        return await this.inventoryRepo.getAllInventoryProduct();
+    }
     async createInventoryReservation(input: InventoryReservationTypeTable): Promise<InventoryReservation> {
         // Check if product exists and has enough quantity
         const inventory = await this.inventoryRepo.findProductById(input.product_id);
 
         await this.inventoryRepo.removeQtyFromInventory(input.product_id, input.quantity);
         const allProductId = await this.inventoryRepo.findProductIdByOrderId(input.order_id);
-
+          await this.inventoryRepo.updateOrderStatusByOrderId(input.order_id,  'RESERVED_INVENTORY');
+       
         if (!inventory) {
             throw new Error(`Product with ID ${input.product_id} not found`);
         }

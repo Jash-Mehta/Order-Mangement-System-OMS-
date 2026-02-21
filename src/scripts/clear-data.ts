@@ -3,8 +3,13 @@ import { TABLES } from '../database/table_name';
 
 async function clearTable(tableName: string) {
   console.log(`Clearing data from table: ${tableName}`);
-  await pgPool.query(`DELETE FROM ${tableName}`);
-  console.log(`✓ Cleared data from ${tableName}`);
+  try {
+    await pgPool.query(`DELETE FROM ${tableName}`);
+    console.log(`✓ Cleared data from ${tableName}`);
+  } catch (error) {
+    console.error(`❌ Failed to clear ${tableName}:`, error);
+    throw error;
+  }
 }
 
 async function resetSequences(tableNames: string[]) {
@@ -13,11 +18,17 @@ async function resetSequences(tableNames: string[]) {
   // Reset sequences for tables that might have them
   for (const table of tableNames) {
     try {
-      await pgPool.query(`SELECT setval(pg_get_serial_sequence('${table}', 'id'), 1, false);`);
+      // Try different sequence reset approaches
+      await pgPool.query(`ALTER SEQUENCE IF EXISTS ${table}_id_seq RESTART WITH 1`);
       console.log(`✓ Reset sequence for ${table}`);
     } catch (err) {
-      // Ignore if sequence doesn't exist (UUID tables don't use sequences)
-      console.log(`- No sequence to reset for ${table}`);
+      // Try the setval approach as fallback
+      try {
+        await pgPool.query(`SELECT setval(pg_get_serial_sequence('${table}', 'id'), 1, false);`);
+        console.log(`✓ Reset sequence for ${table} (fallback method)`);
+      } catch (fallbackErr) {
+        console.log(`- No sequence to reset for ${table}`);
+      }
     }
   }
   
@@ -70,7 +81,7 @@ async function clearAllData() {
     }
 
     // Reset sequences
-    await resetSequences(tables);
+    await resetSequences(allTables);
 
     await pgPool.query('COMMIT');
     console.log('✅ All data cleared successfully!');
@@ -126,13 +137,18 @@ async function main() {
       console.log(`\n🎉 Cleared data from: ${requestedTables.join(', ')}`);
     }
     
-    console.log('💡 You can now run `npm run migrate:dev` to recreate tables if needed.');
+    console.log('💡 You can now run \`npm run migrate:dev\` to recreate tables if needed.');
     
   } catch (error) {
     console.error('💥 Failed to clear data:', error);
     process.exit(1);
   } finally {
-    await pgPool.end();
+    // Always close the connection pool
+    try {
+      await pgPool.end();
+    } catch (endError) {
+      console.error('Error closing database connection:', endError);
+    }
   }
 }
 

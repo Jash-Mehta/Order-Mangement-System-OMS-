@@ -1,5 +1,6 @@
 import type { Request, Response } from 'express';
-import { OrderService } from '../services/order.service';
+import { OrderService } from '../services/order.services';
+import { ResponseUtil } from '../../../utils/response.util';
 
 
 export class OrderController {
@@ -7,43 +8,60 @@ export class OrderController {
   constructor(private orderService: OrderService) {}
 
   create = async (req: Request, res: Response) => {
-    const payload = req.body;
-
-    const order = await this.orderService.createOrder(payload);
-    res.status(201).json(order);
+    try {
+      const payload = req.body;
+      const order = await this.orderService.createOrder(payload);
+      ResponseUtil.created(res, order, 'Order created successfully');
+    } catch (error) {
+      ResponseUtil.internalError(res, 'Failed to create order', error instanceof Error ? error.message : 'Unknown error');
+    }
   };
 
   getById = async (req: Request, res: Response) => {
-    const order = await this.orderService.getOrderById(req.params.id);
+    try {
+      const order = await this.orderService.getOrderById(req.params.id);
 
-    if (!order) {
-      res.status(404).json({ message: 'Order not found' });
-      return;
+      if (!order) {
+        ResponseUtil.notFound(res, 'Order not found', `No order found with ID: ${req.params.id}`);
+        return;
+      }
+
+      ResponseUtil.success(res, order, 'Order retrieved successfully');
+    } catch (error) {
+      ResponseUtil.internalError(res, 'Failed to retrieve order', error instanceof Error ? error.message : 'Unknown error');
     }
-
-    res.status(200).json(order);
   };
 
   createWithItems = async (req: Request, res: Response) => {
-    const payload = req.body;
-
-    const result = await this.orderService.createOrderWithItems(payload);
-    res.status(201).json(result);
+    try {
+      const payload = req.body;
+      const result = await this.orderService.createOrderWithItems(payload);
+      ResponseUtil.created(res, result, 'Order with items created successfully');
+    } catch (error) {
+      ResponseUtil.internalError(res, 'Failed to create order with items', error instanceof Error ? error.message : 'Unknown error');
+    }
   };
 
   getAllOrdersWithItems = async (req: Request, res: Response) => {
-    const orders = await this.orderService.getAllOrdersCreated();
-    res.status(200).json(orders);
+    try {
+      const orders = await this.orderService.getAllOrdersCreated();
+      ResponseUtil.success(res, orders, 'Orders with items retrieved successfully');
+    } catch (error) {
+      ResponseUtil.internalError(res, 'Failed to retrieve orders with items', error instanceof Error ? error.message : 'Unknown error');
+    }
   };
 
   getAll = async(req: Request, res: Response) => {
-    const customerId = req.query.customerId;
-    if (!customerId || Array.isArray(customerId)) {
-      res.status(400).json({ message: 'customerId query parameter is required' });
-      return;
+    try {
+      const customerId = req.query.customerId;
+      if (!customerId || Array.isArray(customerId)) {
+        ResponseUtil.badRequest(res, 'customerId query parameter is required and must be a single value');
+        return;
+      }
+      const orders = await this.orderService.getAllOrders(String(customerId));
+      ResponseUtil.success(res, orders, 'Customer orders retrieved successfully');
+    } catch (error) {
+      ResponseUtil.internalError(res, 'Failed to retrieve customer orders', error instanceof Error ? error.message : 'Unknown error');
     }
-    const orders = await this.orderService.getAllOrders(String(customerId));
-
-    res.status(200).json(orders);
   }
 }
