@@ -25,8 +25,12 @@ export class PaymentsControllers {
                 return;
             }
 
+            const rawBody = req.body instanceof Buffer
+                ? req.body.toString('utf8')
+                : JSON.stringify(req.body);
+
             const isValid = this.paymentServices.verifyWebhookSignature(
-                JSON.stringify(body),
+                rawBody,
                 signature
             );
 
@@ -46,7 +50,7 @@ export class PaymentsControllers {
         try {
             const { orderId } = req.params;
             const payment = await this.paymentServices.getPaymentByOrderId(orderId);
-            
+
             if (!payment) {
                 ResponseUtil.notFound(res, 'Payment not found', `No payment found for order ID: ${orderId}`);
                 return;
@@ -62,7 +66,7 @@ export class PaymentsControllers {
         try {
             const { razorpayPaymentId } = req.params;
             const payment = await this.paymentServices.getPaymentByRazorpayId(razorpayPaymentId);
-            
+
             if (!payment) {
                 ResponseUtil.notFound(res, 'Payment not found', `No payment found with Razorpay ID: ${razorpayPaymentId}`);
                 return;
@@ -76,7 +80,13 @@ export class PaymentsControllers {
 
     getUserPayments = async (req: Request, res: Response) => {
         try {
-            const { userId } = req.params;
+            const userId = (req as any).user?.id;
+
+            if (!userId) {
+                ResponseUtil.badRequest(res, 'Unauthorized', 'User not authenticated');
+                return;
+            }
+
             const payments = await this.paymentServices.getUserPayments(userId);
             ResponseUtil.success(res, payments, 'User payments retrieved successfully');
         } catch (error) {
@@ -86,7 +96,7 @@ export class PaymentsControllers {
 
     verifyPayment = async (req: Request, res: Response) => {
         try {
-            const result = await PaymentsServices.verifyPayment(req.body);
+            const result = await this.paymentServices.verifyPayment(req.body);
             ResponseUtil.success(res, result, 'Payment verification completed');
         } catch (error) {
             ResponseUtil.internalError(res, 'Payment verification failed', error instanceof Error ? error.message : 'Unknown error');

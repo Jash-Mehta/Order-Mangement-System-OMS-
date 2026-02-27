@@ -4,8 +4,8 @@ import { ResponseUtil } from '../../../utils/response.util';
 
 
 export class OrderController {
-  
-  constructor(private orderService: OrderService) {}
+
+  constructor(private orderService: OrderService) { }
 
   create = async (req: Request, res: Response) => {
     try {
@@ -35,6 +35,18 @@ export class OrderController {
   createWithItems = async (req: Request, res: Response) => {
     try {
       const payload = req.body;
+      const { items } = req.body;
+    const customerId = (req as any).user?.userId; 
+
+        if (!customerId) {
+            ResponseUtil.badRequest(res, 'Unauthorized');
+            return;
+        }
+
+      if (!items || items.length === 0) {
+        ResponseUtil.badRequest(res, 'At least one item is required');
+        return;
+      }
       const result = await this.orderService.createOrderWithItems(payload);
       ResponseUtil.created(res, result, 'Order with items created successfully');
     } catch (error) {
@@ -44,14 +56,20 @@ export class OrderController {
 
   getAllOrdersWithItems = async (req: Request, res: Response) => {
     try {
-      const orders = await this.orderService.getAllOrdersCreated();
-      ResponseUtil.success(res, orders, 'Orders with items retrieved successfully');
+    
+      const customerId = (req as any).user?.id;
+        const orders = await this.orderService.getAllOrdersCreated(customerId);
+      if (!customerId) {
+        ResponseUtil.badRequest(res, 'Unauthorized');
+        return;
+      }
+      return ResponseUtil.success(res, orders, "Get All Order");
     } catch (error) {
       ResponseUtil.internalError(res, 'Failed to retrieve orders with items', error instanceof Error ? error.message : 'Unknown error');
     }
   };
 
-  getAll = async(req: Request, res: Response) => {
+  getAll = async (req: Request, res: Response) => {
     try {
       const customerId = req.query.customerId;
       if (!customerId || Array.isArray(customerId)) {

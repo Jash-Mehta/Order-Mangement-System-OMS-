@@ -1,4 +1,3 @@
-import { container } from '../../../DI/container';
 import { InventoryRepositories } from '../../inventory/repositories/inventory.repositories';
 import { OrderRepository } from '../repositories/order.repository';
 import type { Order } from '../repositories/order.repository';
@@ -6,7 +5,7 @@ import type { Order } from '../repositories/order.repository';
 export class OrderService {
 
   constructor(private readonly orderRepo: OrderRepository = new OrderRepository(),
-   private readonly inventoryRepo: InventoryRepositories = new InventoryRepositories()) {}
+    private readonly inventoryRepo: InventoryRepositories = new InventoryRepositories()) { }
 
   async createOrder(input: {
     customer_id?: string;
@@ -15,18 +14,18 @@ export class OrderService {
     total_amount?: number;
     totalAmount?: number;
   }) {
-    
+
     const customerId = input.customerId || input.customer_id;
     const totalAmount = input.totalAmount || input.total_amount;
-    
+
     if (!customerId) {
       throw new Error("Customer ID is required");
     }
-    
+
     if (totalAmount === undefined) {
       throw new Error("Total amount is required");
     }
-    
+
     return this.orderRepo.create({
       customer_id: customerId,
       status: input.status,
@@ -51,46 +50,44 @@ export class OrderService {
     }>;
   }) {
     console.log('Creating order with items:', input);
-    
+
     const customerId = input.customerId || input.customer_id;
-    
+
     if (!customerId) {
-      return ("Customer ID is required");
+      throw new Error("Customer ID is required");
     }
-    
     if (!input.items || input.items.length === 0) {
-      return ("At least one item is required");
+      throw new Error("At least one item is required");
     }
-    
+
     // Step 1: Check inventory availability for all items
     for (const item of input.items) {
       const inventory = await this.inventoryRepo.findProductById(item.product_id);
-      
+
       if (!inventory) {
-        return (`Product with ID ${item.product_id} is not available right now`);
+        throw new Error(`Product with ID ${item.product_id} is not available right now`);
+
       }
-      
+
       if (inventory.available_quantity < item.quantity) {
-        return (`Product ${inventory.name} is out of stock. Only ${inventory.available_quantity} units available, but you requested ${item.quantity}`);
+        throw new Error(`Product ${inventory.name} is out of stock. Only ${inventory.available_quantity} units available, but you requested ${item.quantity}`);
       }
     }
-    
+
     const totalAmount = input.items.reduce((sum, item) => sum + (item.amount * item.quantity), 0);
-    
+
     // Step 2: Create the order with calculated total amount
     const order = await this.orderRepo.create({
       customer_id: customerId,
       status: 'PENDING',
       total_amount: totalAmount,
     });
-    
+
     console.log('Created order:', order);
-    
+
     // Step 3: Create order items and update inventory
     const createdItems = [];
     for (const item of input.items) {
-      const inventory = await this.inventoryRepo.findProductById(item.product_id);
-      
       // Create order item
       const orderItem = await this.orderRepo.createOrdersItems({
         order_id: order.id,
@@ -101,11 +98,10 @@ export class OrderService {
         expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
       });
       createdItems.push(orderItem);
+
       
-      // TODO: Update inventory available_quantity (you'll need to add this method to inventory repo)
-      console.log(`Would update inventory for product ${item.product_id}, reducing quantity by ${item.quantity}`);
     }
-    
+
     return {
       message: "Order created successfully with items",
       success: true,
@@ -121,16 +117,15 @@ export class OrderService {
       items: createdItems,
     };
   }
+async getAllOrdersCreated(customer_id: string): Promise<any[]> {
+    const rawData = await this.orderRepo.getAllOrdersCreated(customer_id);
 
-  async getAllOrdersCreated(): Promise<any[]> {
-    const rawData = await this.orderRepo.getAllOrdersCreated();
-    
     // Group data by order
     const orderMap = new Map();
-    
+
     for (const row of rawData) {
       const orderId = row.order_id;
-      
+
       // Create order if not exists
       if (!orderMap.has(orderId)) {
         orderMap.set(orderId, {
@@ -143,7 +138,7 @@ export class OrderService {
           items: []
         });
       }
-      
+
       // Add item to order
       const order = orderMap.get(orderId);
       order.items.push({
@@ -171,7 +166,7 @@ export class OrderService {
         inventory_available_quantity: row.inventory_available_quantity
       });
     }
-    
+
     return Array.from(orderMap.values());
   }
 

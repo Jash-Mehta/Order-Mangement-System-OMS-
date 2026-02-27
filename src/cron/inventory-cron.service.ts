@@ -15,45 +15,38 @@ export class InventoryCronService {
     }
 
     startCleanupCron(): void {
-        // Run every 5 minutes instead of every minute
         this.cleanupTask = cron.schedule('*/5 * * * *', async () => {
             try {
                 console.log('🔄 Running inventory reservation cleanup check...');
-                
-                // Check if services are available before using them
+
                 if (!container.inventoryServices || !container.inventoryRepo) {
                     console.log('⚠️  Inventory services not available, skipping cleanup');
                     return;
                 }
-                
+
                 const allReservations = await container.inventoryServices.getAllReservation();
                 const currentTime = new Date();
-                
-                const expiredProductIds = new Set<string>();
-                
-                // Check each reservation for expiration
-                for (const reservation of allReservations) {
-                    if (new Date(reservation.expires_at) <= currentTime) {
-                        expiredProductIds.add(reservation.product_id);
-                        console.log(`⏰ Reservation ${reservation.id} for product ${reservation.product_id} has expired`);
-                    }
-                }
-                
-                if (expiredProductIds.size > 0) {
-                    console.log(`🗑️  Releasing reservations for ${expiredProductIds.size} products`);
-                    
-                    for (const productId of expiredProductIds) {
+
+                const expiredReservations = allReservations.filter(
+                    reservation => new Date(reservation.expires_at) <= currentTime
+                );
+
+                if (expiredReservations.length > 0) {
+                    console.log(`🗑️  Releasing ${expiredReservations.length} expired reservations`);
+
+                    for (const reservation of expiredReservations) {
                         try {
-                            await container.inventoryRepo.releaseReservation(productId);
-                            console.log(`♻️  Released expired reservations for product ${productId}`);
+                            await container.inventoryRepo.releaseReservation(reservation.product_id);
+                            await container.inventoryRepo.updateOrderStatusByOrderId(reservation.order_id, 'CANCELLED');
+                            console.log(`♻️  Released expired reservation ${reservation.id} for product ${reservation.product_id}`);
                         } catch (error) {
-                            console.error(`❌ Failed to release reservations for product ${productId}:`, error);
+                            console.error(`❌ Failed to release reservation ${reservation.id}:`, error);
                         }
                     }
                 } else {
                     console.log('✅ No expired inventory reservations found');
                 }
-                
+
             } catch (error) {
                 console.error('❌ Error during inventory reservation cleanup:', error);
             }

@@ -1,21 +1,19 @@
-import { Router } from 'express';
+import { Router, raw } from 'express';
 import { container } from '../../../DI/container';
+import { AuthMiddleware } from '../../../middleware/auth.middleware';
+
 export const paymentsRouter = Router();
-import express from "express";
 
-const app = express();
+paymentsRouter.post('/', AuthMiddleware.authenticate, container.paymentsControllers.createPayment);
 
-paymentsRouter.post('/',container.paymentsControllers.createPayment);
-paymentsRouter.post('/webhook', 
-    express.raw({ type: 'application/json' }), 
+paymentsRouter.post('/webhook',
+    raw({ type: 'application/json' }),  // raw imported directly from express
     container.paymentsControllers.handleWebhook
 );
 
-// NEW: Payment retrieval endpoints
-paymentsRouter.get('/order/:orderId', container.paymentsControllers.getPaymentByOrderId);
-paymentsRouter.get('/razorpay/:razorpayPaymentId', container.paymentsControllers.getPaymentByRazorpayId);
-paymentsRouter.get('/user/:userId', container.paymentsControllers.getUserPayments);
-paymentsRouter.get('/refunds/:paymentId', container.paymentsControllers.getPaymentRefunds);
+paymentsRouter.get('/order/:orderId', AuthMiddleware.authenticate, container.paymentsControllers.getPaymentByOrderId);
+paymentsRouter.get('/razorpay/:razorpayPaymentId', AuthMiddleware.authenticate, container.paymentsControllers.getPaymentByRazorpayId);
+paymentsRouter.get('/user/:userId', AuthMiddleware.authenticate, container.paymentsControllers.getUserPayments);
+paymentsRouter.get('/refunds/:paymentId', AuthMiddleware.authenticate, container.paymentsControllers.getPaymentRefunds);
 
-// NEW: Payment verification endpoint
-paymentsRouter.post('/verify', container.paymentsControllers.verifyPayment);
+paymentsRouter.post('/verify', AuthMiddleware.authenticate, container.paymentsControllers.verifyPayment);
