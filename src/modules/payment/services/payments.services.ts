@@ -9,20 +9,20 @@ import { ResponseUtil } from "../../../utils/response.util";
 import { InventoryServices } from "../../inventory/services/inventory.services";
 
 export class PaymentsServices {
-    constructor(private readonly paymentsRepositories: PaymentsRepsitories, 
-        private  reservationServices: InventoryServices,
+    constructor(private readonly paymentsRepositories: PaymentsRepsitories,
+        private reservationServices: InventoryServices,
     ) { }
 
     async createPayment(input: PaymentModel) {
-        const {order_id, user_id} = input;
+        const { order_id, user_id } = input;
         await this.paymentsRepositories.updateOrderStatusByOrderId(input.order_id, "IN_PROGRESS");
-        await this.reservationServices.createReservationsForOrder({order_id, user_id});
-       const orderId = await this.paymentsRepositories.getOrderId(input.order_id);
-        if(input.order_id == orderId ){
-            console.log("PaymentId is already created please wait for 10 min to start again");
+        await this.reservationServices.createReservationsForOrder({ order_id, user_id });
+
+        const existing = await this.paymentsRepositories.getRazorpayByOrderId(input.order_id);
+        if (existing) {
             return {
-                message: 'PaymentId is already created please wait for 10 min to start again',
-            }
+                message: 'Payment already initiated for this order. Please wait or contact support.',
+            };
         }
         return await this.paymentsRepositories.createPayment({
             order_id: input.order_id,
@@ -34,7 +34,8 @@ export class PaymentsServices {
         });
     }
 
-    static async verifyPayment(data: VerifyPaymentDTO) {
+    
+    async verifyPayment(data: VerifyPaymentDTO) {
         const isValid = verifyRazorpaySignature(
             data.razorpayOrderId,
             data.razorpayPaymentId,
@@ -74,7 +75,7 @@ export class PaymentsServices {
 
     verifyWebhookSignature(body: string, signature: string): boolean {
         const expectedSignature = crypto
-            .createHmac('sha256', "webhook_secret")
+            .createHmac('sha256', process.env.RAZORPAY_WEBHOOK_SECRET!)
             .update(body)
             .digest('hex');
 

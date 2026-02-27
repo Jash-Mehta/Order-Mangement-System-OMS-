@@ -56,10 +56,49 @@ export class OrderRepository {
     .executeTakeFirstOrThrow();
   }
 
-  async getAllOrdersCreated(): Promise<any[]> {
+  // async getAllOrdersCreated(): Promise<any[]> {
+  //   const query = `
+  //     SELECT 
+        // oi.id as item_id,
+        // oi.order_id,
+        // oi.product_id,
+        // oi.quantity,
+        // oi.amount,
+        // oi.status as item_status,
+        // oi.expires_at,
+        // oi.created_at as item_created_at,
+        // oi.rating,
+        // oi.review,
+        // oi.reviewed_at,
+        // o.id as order_id,
+        // o.customer_id,
+        // o.status as order_status,
+        // o.total_amount,
+        // o.created_at as order_created_at,
+        // o.updated_at,
+        // i.product_id as inventory_product_id,
+        // i.name as product_name,
+        // i.brand_name,
+        // i.bar_code,
+        // i.image_url,
+        // i.price as inventory_price,
+        // i.batch_no,
+        // i.mfg_date,
+        // i.expiry_date as inventory_expiry_date,
+        // i.total_quantity as inventory_total_quantity,
+        // i.available_quantity as inventory_available_quantity
+  //     FROM orders_items oi
+  //     INNER JOIN orders o ON o.id = oi.order_id
+  //     LEFT JOIN inventory i ON i.product_id = oi.product_id
+  //     ORDER BY o.created_at DESC, oi.created_at ASC
+  //   `;
+    
+  //   const { rows } = await pgPool.query(query);
+  //   return rows;
+  // }
+async getAllOrdersCreated(customer_id: string): Promise<any[]> {
     const query = `
-      SELECT 
-        oi.id as item_id,
+        SELECT        oi.id as item_id,
         oi.order_id,
         oi.product_id,
         oi.quantity,
@@ -86,16 +125,13 @@ export class OrderRepository {
         i.mfg_date,
         i.expiry_date as inventory_expiry_date,
         i.total_quantity as inventory_total_quantity,
-        i.available_quantity as inventory_available_quantity
-      FROM orders_items oi
-      INNER JOIN orders o ON o.id = oi.order_id
-      LEFT JOIN inventory i ON i.product_id = oi.product_id
-      ORDER BY o.created_at DESC, oi.created_at ASC
+        i.available_quantity as inventory_available_quantity FROM orders_items oi
+        INNER JOIN orders o ON o.id = oi.order_id
+        LEFT JOIN inventory i ON i.product_id = oi.product_id
+        WHERE o.customer_id = $1
+        ORDER BY o.created_at DESC, oi.created_at ASC
     `;
-    
-    const { rows } = await pgPool.query(query);
+    const { rows } = await pgPool.query(query, [customer_id]);
     return rows;
-  }
-
-
+}
 }

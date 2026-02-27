@@ -111,7 +111,6 @@ export class AuthService {
       
     };
   }
-
   async getAllUsers() {
     try {
       const users = await this.userRepo.getAllUsers();
