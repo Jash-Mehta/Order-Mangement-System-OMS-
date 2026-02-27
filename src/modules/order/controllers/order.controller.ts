@@ -35,11 +35,14 @@ export class OrderController {
   createWithItems = async (req: Request, res: Response) => {
     try {
       const payload = req.body;
-      const { customerId, customer_id, items } = req.body;
-      if (!customerId && !customer_id) {
-        ResponseUtil.badRequest(res, 'Customer ID is required');
-        return;
-      }
+      const { items } = req.body;
+    const customerId = (req as any).user?.userId; 
+
+        if (!customerId) {
+            ResponseUtil.badRequest(res, 'Unauthorized');
+            return;
+        }
+
       if (!items || items.length === 0) {
         ResponseUtil.badRequest(res, 'At least one item is required');
         return;

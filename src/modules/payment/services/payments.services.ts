@@ -4,12 +4,19 @@ import { RazorpayWebhookEvent, WebhookEvents } from "../types/webhook.types";
 import crypto from 'crypto';
 import { VerifyPaymentDTO } from "../types/verify.paymentdto";
 import { InventoryServices } from "../../inventory/services/inventory.services";
+import Razorpay from "razorpay";
 
 export class PaymentsServices {
+     private readonly razorpay: Razorpay;
     constructor(
         private readonly paymentsRepositories: PaymentsRepsitories,
         private readonly reservationServices: InventoryServices,
-    ) { }
+    ) { 
+           this.razorpay = new Razorpay({
+            key_id: process.env.RAZORPAY_KEY_ID!,
+            key_secret: process.env.RAZORPAY_KEY_SECRET!,
+        });
+    }
 
     async createPayment(input: PaymentModel) {
         const { order_id, user_id } = input;
@@ -24,19 +31,28 @@ export class PaymentsServices {
 
         // Step 2: Update order status
         await this.paymentsRepositories.updateOrderStatusByOrderId(input.order_id, "IN_PROGRESS");
+       
 
+        // Create order on Razorpay
+        const razorpayOrder = await this.razorpay.orders.create({
+            amount: input.amount,   // in paise
+            currency: 'INR',
+            receipt: input.order_id,
+        });
         // Step 3: Deduct stock from inventory — only happens when user clicks pay
         await this.reservationServices.createReservationsForOrder({ order_id, user_id });
 
-        // Step 4: Create payment record
+        // Then save razorpay_order_id to your DB
         return await this.paymentsRepositories.createPayment({
             order_id: input.order_id,
             user_id: input.user_id,
-            razorpay_order_id: input.razorpay_order_id || '',
+            razorpay_order_id: razorpayOrder.id,  // from Razorpay
             amount: input.amount,
             currency: "INR",
             status: input.status
         });
+
+
     }
 
     async verifyPayment(data: VerifyPaymentDTO) {
