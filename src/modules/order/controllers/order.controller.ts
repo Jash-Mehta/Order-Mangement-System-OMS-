@@ -57,7 +57,7 @@ export class OrderController {
   getAllOrdersWithItems = async (req: Request, res: Response) => {
     try {
     
-      const customerId = (req as any).user?.id;
+      const customerId = (req as any).user?.userId;
         const orders = await this.orderService.getAllOrdersCreated(customerId);
       if (!customerId) {
         ResponseUtil.badRequest(res, 'Unauthorized');
