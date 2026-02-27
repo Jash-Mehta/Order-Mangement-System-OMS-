@@ -1,29 +1,34 @@
-import { PaymentsTable } from "../payments.schema";
 import { PaymentsRepsitories } from "../repositories/payments.repositories";
 import { PaymentModel } from "../types/payment.types";
 import { RazorpayWebhookEvent, WebhookEvents } from "../types/webhook.types";
 import crypto from 'crypto';
 import { VerifyPaymentDTO } from "../types/verify.paymentdto";
-import { orderDB } from "../../../database";
-import { ResponseUtil } from "../../../utils/response.util";
 import { InventoryServices } from "../../inventory/services/inventory.services";
 
 export class PaymentsServices {
-    constructor(private readonly paymentsRepositories: PaymentsRepsitories,
-        private reservationServices: InventoryServices,
+    constructor(
+        private readonly paymentsRepositories: PaymentsRepsitories,
+        private readonly reservationServices: InventoryServices,
     ) { }
 
     async createPayment(input: PaymentModel) {
         const { order_id, user_id } = input;
-        await this.paymentsRepositories.updateOrderStatusByOrderId(input.order_id, "IN_PROGRESS");
-        await this.reservationServices.createReservationsForOrder({ order_id, user_id });
 
+        // Step 1: Check duplicate FIRST before doing anything
         const existing = await this.paymentsRepositories.getRazorpayByOrderId(input.order_id);
         if (existing) {
             return {
                 message: 'Payment already initiated for this order. Please wait or contact support.',
             };
         }
+
+        // Step 2: Update order status
+        await this.paymentsRepositories.updateOrderStatusByOrderId(input.order_id, "IN_PROGRESS");
+
+        // Step 3: Deduct stock from inventory — only happens when user clicks pay
+        await this.reservationServices.createReservationsForOrder({ order_id, user_id });
+
+        // Step 4: Create payment record
         return await this.paymentsRepositories.createPayment({
             order_id: input.order_id,
             user_id: input.user_id,
@@ -34,7 +39,6 @@ export class PaymentsServices {
         });
     }
 
-    
     async verifyPayment(data: VerifyPaymentDTO) {
         const isValid = verifyRazorpaySignature(
             data.razorpayOrderId,
@@ -65,14 +69,6 @@ export class PaymentsServices {
         return await this.paymentsRepositories.getPaymentRefunds(payment_id);
     }
 
-    async getRazorpayByOrderId(order_id: string) {
-        if (order_id == null) {
-            return {
-                messsage: "OrderId should not be empty",
-            }
-        }
-    }
-
     verifyWebhookSignature(body: string, signature: string): boolean {
         const expectedSignature = crypto
             .createHmac('sha256', process.env.RAZORPAY_WEBHOOK_SECRET!)
@@ -88,7 +84,6 @@ export class PaymentsServices {
         switch (eventType) {
             case WebhookEvents.PAYMENT_AUTHORIZED:
                 await this.handlePaymentAuthorized(payload.payment.entity);
-
                 break;
 
             case WebhookEvents.PAYMENT_CAPTURED:
@@ -96,9 +91,7 @@ export class PaymentsServices {
                 break;
 
             case WebhookEvents.PAYMENT_FAILED:
-
                 await this.handlePaymentFailed(payload.payment.entity);
-
                 await this.paymentsRepositories.updateOrderStatusByOrderId(event.payload.payment.entity.order_id, "FAILED");
                 break;
 
@@ -155,9 +148,7 @@ export class PaymentsServices {
             'CAPTURED'
         );
     }
-
 }
-
 
 function verifyRazorpaySignature(
     orderId: string,
