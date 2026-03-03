@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS payments (
   currency VARCHAR(10) DEFAULT 'INR',
 
   status VARCHAR(20) NOT NULL CHECK (status IN (
+    'PENDING',
     'CREATED',
     'AUTHORIZED',
     'CAPTURED',
@@ -20,10 +21,8 @@ CREATE TABLE IF NOT EXISTS payments (
   failure_reason TEXT,
 
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-
-  CONSTRAINT fk_payment_order FOREIGN KEY (order_id) REFERENCES orders(id),
-  CONSTRAINT fk_payment_user FOREIGN KEY (user_id) REFERENCES users(id)
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  -- NO FOREIGN KEY CONSTRAINTS - Using JOINs instead
 );
 
 -- Create trigger to update updated_at timestamp

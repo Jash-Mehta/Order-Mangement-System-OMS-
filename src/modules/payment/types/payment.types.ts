@@ -9,6 +9,7 @@ export interface PaymentModel{
     amount: number;
     currency: 'INR';
     status:
+    | 'PENDING'
     | 'CREATED'
     | 'AUTHORIZED'
     | 'CAPTURED'

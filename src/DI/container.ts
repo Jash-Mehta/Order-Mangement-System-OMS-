@@ -1,7 +1,7 @@
 import { InventoryControllers } from "../modules/inventory/controllers/inventory.controllers";
 import { InventoryRepositories } from "../modules/inventory/repositories/inventory.repositories";
 import { InventoryServices } from "../modules/inventory/services/inventory.services";
-import { OrderController } from "../modules/order/controllers/order.controller";
+import { OrderController } from "../modules/order/controllers/order.controllers";
 import { OrderRepository } from "../modules/order/repositories/order.repository";
 import { OrderService } from "../modules/order/services/order.services";
 import { PaymentsControllers } from "../modules/payment/controllers/payments.controllers";
