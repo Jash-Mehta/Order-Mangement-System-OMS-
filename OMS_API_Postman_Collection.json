@@ -1,0 +1,631 @@
+{
+	"info": {
+		"_postman_id": "oms-api-collection",
+		"name": "OMS - Order Management System API",
+		"description": "Complete API collection for Order Management System with authentication, inventory, orders, and payments",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "👤 Users",
+			"item": [
+				{
+					"name": "Register User",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"John Doe\",\n  \"email\": \"john@example.com\",\n  \"password\": \"password123\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/users/create",
+							"host": ["{{baseUrl}}"],
+							"path": ["users", "create"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login User",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"john@example.com\",\n  \"password\": \"password123\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/users/login",
+							"host": ["{{baseUrl}}"],
+							"path": ["users", "login"]
+						}
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    if (response.data && response.data.token) {",
+									"        pm.collectionVariables.set('jwtToken', response.data.token);",
+									"        pm.collectionVariables.set('userId', response.data.user.id);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"response": []
+				},
+				{
+					"name": "Get All Users",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    if (response.data && Array.isArray(response.data)) {",
+									"        pm.test('✅ Users array received', true);",
+									"        pm.test('📊 Users count: ' + response.data.length, true);",
+									"        response.data.forEach((user, index) => {",
+									"            pm.test(`User ${index + 1}: ${user.name} (${user.email})`, true);",
+									"        });",
+									"    } else {",
+									"        pm.test('❌ No users data received', false);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwtToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/users/all",
+							"host": ["{{baseUrl}}"],
+							"path": ["users", "all"]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "📦 Inventory",
+			"item": [
+				{
+					"name": "Create Inventory Product",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwtToken}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Premium Laptop\",\n  \"brand_name\": \"TechBrand\",\n  \"bar_code\": \"1234567890123\",\n  \"image_url\": \"https://example.com/laptop.jpg\",\n  \"price\": 999.99,\n  \"batch_no\": \"BATCH001\",\n  \"mfg_date\": \"2024-01-01\",\n  \"expiry_date\": \"2025-01-01\",\n  \"total_quantity\": 50,\n  \"available_quantity\": 50\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/inventory",
+							"host": ["{{baseUrl}}"],
+							"path": ["inventory"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Inventory Products",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwtToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/inventory",
+							"host": ["{{baseUrl}}"],
+							"path": ["inventory"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Product by ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwtToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/inventory/{{productId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["inventory", "{{productId}}"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Reservations",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwtToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/inventory/reservations/all",
+							"host": ["{{baseUrl}}"],
+							"path": ["inventory", "reservations", "all"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Inventory Reservation",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwtToken}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"product_id\": \"{{productId}}\",\n  \"order_id\": \"{{orderId}}\",\n  \"quantity\": 2,\n  \"expires_at\": \"2024-12-31T23:59:59.000Z\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/inventory/reservation",
+							"host": ["{{baseUrl}}"],
+							"path": ["inventory", "reservation"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Reservations for Order",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwtToken}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"order_id\": \"{{orderId}}\",\n  \"items\": [\n    {\n      \"product_id\": \"{{productId}}\",\n      \"quantity\": 2\n    }\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/inventory/reservation/order",
+							"host": ["{{baseUrl}}"],
+							"path": ["inventory", "reservation", "order"]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "🛒 Orders",
+			"item": [
+				{
+					"name": "Create Order",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwtToken}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"customer_id\": \"{{userId}}\",\n  \"total_amount\": 1999.98,\n  \"status\": \"PENDING\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/orders",
+							"host": ["{{baseUrl}}"],
+							"path": ["orders"]
+						}
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const response = pm.response.json();",
+									"    if (response.data && response.data.id) {",
+									"        pm.collectionVariables.set('orderId', response.data.id);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"response": []
+				},
+				{
+					"name": "Create Order with Items",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwtToken}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"customer_id\": \"{{userId}}\",\n  \"total_amount\": 1999.98,\n  \"status\": \"PENDING\",\n  \"items\": [\n    {\n      \"product_id\": \"{{productId}}\",\n      \"quantity\": 2,\n      \"amount\": 1999.98\n    }\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/orders/with-items",
+							"host": ["{{baseUrl}}"],
+							"path": ["orders", "with-items"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Orders",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwtToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/orders",
+							"host": ["{{baseUrl}}"],
+							"path": ["orders"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Order by ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwtToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/orders/{{orderId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["orders", "{{orderId}}"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Orders with Items",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwtToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/orders/get-items",
+							"host": ["{{baseUrl}}"],
+							"path": ["orders", "get-items"]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "💳 Payments",
+			"item": [
+				{
+					"name": "Create Payment",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwtToken}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"order_id\": \"{{orderId}}\",\n  \"user_id\": \"{{userId}}\",\n  \"razorpay_order_id\": \"order_1234567890\",\n  \"amount\": 1999.98,\n  \"status\": \"CREATED\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/payments",
+							"host": ["{{baseUrl}}"],
+							"path": ["payments"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Razorpay Webhook",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "x-razorpay-signature",
+								"value": "razorpay-signature-here"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"event\": \"payment.captured\",\n  \"payload\": {\n    \"payment\": {\n      \"entity\": {\n        \"id\": \"pay_1234567890\",\n        \"order_id\": \"{{orderId}}\",\n        \"amount\": 199998,\n        \"currency\": \"INR\",\n        \"status\": \"captured\"\n      }\n    }\n  }\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/payments/webhook",
+							"host": ["{{baseUrl}}"],
+							"path": ["payments", "webhook"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Payment by Order ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwtToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/payments/order/{{orderId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["payments", "order", "{{orderId}}"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Payment by Razorpay ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwtToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/payments/razorpay/{{razorpayPaymentId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["payments", "razorpay", "{{razorpayPaymentId}}"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get User Payments",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwtToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/payments/user/{{userId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["payments", "user", "{{userId}}"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Payment Refunds",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwtToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/payments/refunds/{{paymentId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["payments", "refunds", "{{paymentId}}"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Verify Payment",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwtToken}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"razorpayOrderId\": \"order_1234567890\",\n  \"razorpayPaymentId\": \"pay_1234567890\",\n  \"razorpaySignature\": \"razorpay-signature-here\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/payments/verify",
+							"host": ["{{baseUrl}}"],
+							"path": ["payments", "verify"]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "🏥 Health",
+			"item": [
+				{
+					"name": "System Health Check",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    if (response.status === 'ok') {",
+									"        pm.test('✅ Server is running', true);",
+									"        pm.test('📅 Timestamp is present', response.timestamp !== undefined);",
+									"    } else {",
+									"        pm.test('❌ Server status not ok', false);",
+									"    }",
+									"} else {",
+									"    pm.test('❌ Health check failed', false);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/health",
+							"host": ["{{baseUrl}}"],
+							"path": ["health"]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:3000",
+			"type": "string"
+		},
+		{
+			"key": "jwtToken",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "userId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "orderId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "productId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "paymentId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "razorpayPaymentId",
+			"value": "",
+			"type": "string"
+		}
+	]
+}
