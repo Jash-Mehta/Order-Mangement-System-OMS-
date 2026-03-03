@@ -7,6 +7,7 @@ import { InventoryDatabase } from '../modules/inventory/inventory.schema';
 import { InventoryReservationDatabase } from '../modules/inventory/inventory.reservation.schema';
 import { PaymentDatabase } from '../modules/payment/schema/payments.schema';
 import { RefundDatabase } from '../modules/payment/schema/payment.refund.schema';
+import { ShipmentDatabase } from '../modules/shipment/schema/shipment.schema';
 
 export const pgPool = new Pool(getDatabaseConfig());
 
@@ -45,6 +46,11 @@ export const paymentDB = new Kysely<PaymentDatabase>({
   }),
 });
 export const refundsDB = new Kysely<RefundDatabase>({
+  dialect: new PostgresDialect({
+    pool: pgPool,
+  }),
+});
+export const shipmentDB = new Kysely<ShipmentDatabase>({
   dialect: new PostgresDialect({
     pool: pgPool,
   }),

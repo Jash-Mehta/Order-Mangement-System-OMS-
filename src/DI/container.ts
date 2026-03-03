@@ -7,6 +7,9 @@ import { OrderService } from "../modules/order/services/order.services";
 import { PaymentsControllers } from "../modules/payment/controllers/payments.controllers";
 import { PaymentsRepsitories } from "../modules/payment/repositories/payments.repositories";
 import { PaymentsServices } from "../modules/payment/services/payments.services";
+import { ShipmentController } from "../modules/shipment/controllers/shipment.controllers";
+import { ShipmentRepository } from "../modules/shipment/repositories/shipment.repositories";
+import { ShipmentService } from "../modules/shipment/services/shipment.services";
 import { UserControllers } from "../modules/users/controllers/users.controllers";
 import { UsersRepositories } from "../modules/users/repositories/users.repositories";
 import { AuthService } from "../modules/users/services/auth.services";
@@ -30,6 +33,10 @@ const inventoryControllers = new InventoryControllers(inventoryServices);
 const paymentRepo = new PaymentsRepsitories();
 const payemntServices = new PaymentsServices(paymentRepo, inventoryServices);
 const paymentsControllers = new PaymentsControllers(payemntServices);
+// Shipment Repo
+const shipmentRepo = new ShipmentRepository();
+const shipmentService = new ShipmentService(shipmentRepo);
+const shipmentController = new ShipmentController(shipmentService);
 
 export const container = {
   orderController,
@@ -40,4 +47,5 @@ export const container = {
   paymentsControllers,
   paymentRepo,
   payemntServices,
+  shipmentController,
 };
